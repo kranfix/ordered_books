@@ -84,9 +84,18 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
   @override
   BooksState? fromJson(Map<String, dynamic> json) {
     final books = json['books'];
-    if (books is! List<List<Object?>>) return const BooksLoaded(false, []);
+    const empty = BooksLoaded(false, []);
+    if (books == null) return empty;
+    if (books is! List<dynamic>) return empty;
 
-    return switch (BookItemListSerde.instance.deserialize(books)) {
+    final books1 = <List<Object?>>[];
+    for (final b in books) {
+      if (b is! List<dynamic>) return empty;
+      final objects = b.map((it) => it as Object?).toList();
+      books1.add(objects);
+    }
+
+    return switch (BookItemListSerde.instance.deserialize(books1)) {
       Ok(value: final books) => BooksLoaded(false, books),
       Err(:final err) => BooksLoaded(false, [], BooksLoadedSerDeError(err)),
     };
