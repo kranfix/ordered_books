@@ -36,6 +36,10 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
       ),
       body: BookItemScrollabeView(
         books: booksState.maybeCastedAs<BooksLoaded>()?.books,
+        onReorder: (oldIndex, newIndex) {
+          final event = ReorderdPosition(oldIndex, newIndex);
+          ref.read(blocProv.bloc).add(event);
+        },
       ),
       // body: SmartRefresher(
       //   enablePullDown: false,
@@ -66,9 +70,14 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
 }
 
 class BookItemScrollabeView extends StatelessWidget {
-  const BookItemScrollabeView({super.key, required this.books});
+  const BookItemScrollabeView({
+    super.key,
+    required this.books,
+    required this.onReorder,
+  });
 
   final List<BookItem>? books;
+  final ReorderCallback onReorder;
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +90,12 @@ class BookItemScrollabeView extends StatelessWidget {
         child: Text("There aren't books"),
       );
     }
-    return ListView.separated(
+    return ReorderableListView.builder(
       shrinkWrap: true,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: 20, width: 20),
       itemCount: list.length,
+      onReorder: (oldIndex, newIndex) {},
       itemBuilder: (context, index) => BookItemCard(
+        key: Key(list[index].$id),
         book: list[index],
       ),
     );
@@ -102,6 +111,7 @@ class BookItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return UnconstrainedBox(
       child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
         width: 267, // this fits the aspect ratio of the image
         height: 400,
         alignment: Alignment.bottomCenter,

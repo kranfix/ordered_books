@@ -44,6 +44,35 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
           }
       }
     });
+
+    on<ReorderdPosition>((ev, emit) {
+      final loadedState = state.maybeCastedAs<BooksLoaded>();
+      if (loadedState == null) return;
+      final list = loadedState.books;
+
+      final N = list.length;
+      if (ev.oldIndex >= N || ev.newIndex >= N) return;
+      if (ev.oldIndex == ev.newIndex) return;
+
+      final newList = <BookItem>[];
+      final el = list[ev.oldIndex];
+
+      final o = ev.oldIndex;
+      final n = ev.newIndex;
+      if (o < n) {
+        newList.addAll(list.sublist(0, o));
+        newList.addAll(list.sublist(o + 1, n));
+        newList.add(el);
+        newList.addAll(list.sublist(n));
+      } else {
+        newList.addAll(list.sublist(0, n));
+        newList.add(el);
+        newList.addAll(list.sublist(n, o));
+        newList.addAll(list.sublist(o + 1));
+      }
+
+      emit(BooksLoaded(state.isLoading, newList));
+    });
   }
 
   final Email email;
@@ -84,6 +113,13 @@ class LoadedInitialBooks extends BooksEvent {
 /// Will load more book items from server
 class LoadedMoreBooks extends BooksEvent {
   LoadedMoreBooks();
+}
+
+class ReorderdPosition extends BooksEvent {
+  ReorderdPosition(this.oldIndex, this.newIndex);
+
+  final int oldIndex;
+  final int newIndex;
 }
 
 sealed class BooksState with Castable<BooksState> {
