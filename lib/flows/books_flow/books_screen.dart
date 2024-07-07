@@ -9,8 +9,13 @@ class BooksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Books'),
+      ),
       body: Center(
-        child: Text(email),
+        child: Column(
+          children: [],
+        ),
       ),
     );
   }
