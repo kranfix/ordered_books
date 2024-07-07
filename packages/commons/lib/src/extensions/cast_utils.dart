@@ -10,7 +10,7 @@ extension CastUtils<T> on T {
 
 /// Is thought to be used with sealed classes
 /// but not limited to it
-mixin SealedIsA<T> {
+mixin Castable<T> {
   /// Validates if a variable [T] can be casted as [R]
   bool isA<R extends T>() => canBeCastedAs<R>();
 

@@ -56,5 +56,15 @@ void main() {
       expect(result, isA<Err<Email, EmailError>>());
       expect(result.unwrapErr(), EmailError.invalidFormat);
     });
+
+    test('emails is comparable', () {
+      final e1 = Email.parse('frank@email.com');
+      final e2 = Email.parse('frank@email.com');
+      final e3 = Email.parse('moreno@email.com');
+
+      expect(e1 == e1, isTrue);
+      expect(e1 == e2, isTrue);
+      expect(e1 == e3, isFalse);
+    });
   });
 }

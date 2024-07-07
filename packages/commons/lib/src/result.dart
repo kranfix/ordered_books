@@ -37,7 +37,7 @@ import 'package:commons/commons.dart';
 /// ```
 /// {@endtemplate}
 sealed class Result<T extends Object, E extends Exception>
-    with SealedIsA<Result<T, E>> {
+    with Castable<Result<T, E>> {
   const Result._();
 
   /// {@macro commons_Result_Ok}

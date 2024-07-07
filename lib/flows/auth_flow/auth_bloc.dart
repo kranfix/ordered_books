@@ -44,11 +44,8 @@ class SinedOut extends AuthEvent {
   const SinedOut() : super._();
 }
 
-sealed class AuthState {
+sealed class AuthState with Castable<AuthState> {
   const AuthState._();
-
-  bool isA<T extends AuthState>() => this is T;
-  T? maybeAs<T extends AuthState>() => this is T ? this as T : null;
 }
 
 class UnkownAuth extends AuthState {
