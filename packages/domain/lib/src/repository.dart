@@ -107,7 +107,7 @@ class BookItemSerDe
         return Err(DeseriablizeBookItemError.fieldWithWrongType);
       }
 
-      final imageUrlString = fields[1].maybeCastedAs<String>();
+      final imageUrlString = fields[2].maybeCastedAs<String>();
       if (imageUrlString == null) {
         return Err(DeseriablizeBookItemError.fieldWithWrongType);
       }
