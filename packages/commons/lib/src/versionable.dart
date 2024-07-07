@@ -1,3 +1,5 @@
+import 'package:commons/commons.dart';
+
 /// Version of a data class that could be stored in a local DB
 extension type Version(String version) implements String {}
 
@@ -36,11 +38,11 @@ mixin Versionable<T extends Versionable<T>> {
 //   Version get $version;
 // }
 
-// /// Serialize and Deserialize
-// mixin SerDe<S, D> {
-//   /// Serialize from [D] to [S]
-//   S serialize(D value);
+/// Serialize and Deserialize
+mixin SerDe<D extends Object, S, E extends Exception> {
+  /// Serialize from [D] to [S]
+  S serialize(D value);
 
-//   /// Deserialize form [S] to [D]
-//   D deserialize(S value);
-// }
+  /// Deserialize form [S] to [D]
+  Result<D, E> deserialize(S value);
+}

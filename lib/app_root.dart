@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ordered_books/flows/auth_flow/auth_flow.dart';
-import 'package:ordered_books/flows/books_flow/books_screen.dart';
+import 'package:ordered_books/flows/books_flow/books_bloc.dart';
+import 'package:ordered_books/flows/flows.dart';
+import 'package:domain/domain.dart';
+
+typedef RepoCreate<T> = T Function();
 
 class AppRoot extends StatelessWidget {
-  const AppRoot({super.key});
+  const AppRoot({
+    super.key,
+    required this.createBooksRepo,
+  });
+
+  final RepoCreate<BooksOnlineRepo> createBooksRepo;
 
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
+      overrides: [
+        booksRepoProvider.overrideWith((_) => createBooksRepo()),
+      ],
       child: MaterialApp(
         title: 'Books app',
         theme: ThemeData(
@@ -17,7 +28,7 @@ class AppRoot extends StatelessWidget {
         ),
         home: AuthFlow(
           onAuthenticated: (context, authenticaded) {
-            BooksScreen.navigate(
+            BooksFlow.navigate(
               context,
               email: authenticaded.email,
             );
