@@ -10,6 +10,9 @@ final booksRepoProvider = Provider<BooksOnlineRepo>(
 typedef Reader = T Function<T>(ProviderListenable<T> provider);
 
 class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
+  static final BlocProviderFamily<BooksBloc, BooksState, Email> provider =
+      BlocProvider.family((ref, Email email) => BooksBloc(email, ref.read));
+
   BooksBloc(
     this.email,
     Reader reader, [
@@ -48,9 +51,6 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
   String get id => email;
 
   final Reader read;
-
-  static final BlocProviderFamily<BooksBloc, BooksState, Email> provider =
-      BlocProvider.family((ref, Email email) => BooksBloc(email, ref.read));
 
   @override
   BooksState? fromJson(Map<String, dynamic> json) {
