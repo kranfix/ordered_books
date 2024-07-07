@@ -1,3 +1,5 @@
+import 'package:commons/commons.dart';
+
 /// {@template commons_Result}
 /// # Result
 /// [Result] has two variants: [Ok] and [Err]
@@ -34,7 +36,8 @@
 /// final err2 = Err<String, Exception>(Exception('Unexpected'));
 /// ```
 /// {@endtemplate}
-sealed class Result<T extends Object, E extends Exception> {
+sealed class Result<T extends Object, E extends Exception>
+    with SealedIsA<Result<T, E>> {
   const Result._();
 
   /// {@macro commons_Result_Ok}
