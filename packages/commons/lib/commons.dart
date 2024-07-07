@@ -3,3 +3,4 @@ library;
 
 export 'src/email.dart';
 export 'src/result.dart';
+export 'src/versionable.dart';
