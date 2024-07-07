@@ -130,3 +130,6 @@ class ResultUnwrapException<T, E> implements Exception {
     return 'ResultUnwrapException: $message';
   }
 }
+
+/// Sugar syntax for Future<Result<T, E>>
+typedef FutResult<T extends Object, E extends Exception> = Future<Result<T, E>>;

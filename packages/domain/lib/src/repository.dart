@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:commons/commons.dart';
 
 /// {@template domain_BookItem}
@@ -35,7 +33,15 @@ class BookItem with Versionable<BookItem> {
 // ignore: one_member_abstracts
 mixin BooksOnlineRepo {
   /// Fetch books per user by the user email
-  Future<List<BookItem>> fetchBooksPerUser(Email email);
+  FutResult<List<BookItem>, FetchBooksPerUserError> fetchBooksPerUser(
+    Email email,
+  );
+}
+
+/// Error when [BooksOnlineRepo] tries to `fetchBooksPerUser`
+enum FetchBooksPerUserError implements Exception {
+  /// Unexpected error
+  unexpected,
 }
 
 // Not necessary when we use Hydrated bloc
