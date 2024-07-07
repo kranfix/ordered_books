@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ordered_books/flows/auth_flow/auth_flow.dart';
-import 'package:ordered_books/flows/books_flow/books_screen.dart';
+import 'package:ordered_books/flows/flows.dart';
 
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
@@ -17,7 +16,7 @@ class AppRoot extends StatelessWidget {
         ),
         home: AuthFlow(
           onAuthenticated: (context, authenticaded) {
-            BooksScreen.navigate(
+            BooksFlow.navigate(
               context,
               email: authenticaded.email,
             );
