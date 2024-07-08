@@ -23,8 +23,15 @@ Future<void> main() async {
     ),
   ]);
 
+  final authRepo = FirebaseAuthAdapter(web: kIsWeb);
+  final userStream = authRepo.user();
+  userStream.listen(
+    (user) => print(user),
+  );
+  await userStream.first;
+
   runApp(AppRoot(
-    createAuthRepo: () => FirebaseAuthAdapter(web: kIsWeb),
+    authRepo: authRepo,
     createBooksRepo: () => BooksSdkApadater(),
   ));
 }

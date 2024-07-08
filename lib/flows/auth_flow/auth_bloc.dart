@@ -17,6 +17,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     _userSubscription = _autRepo.user().listen(
           (user) => add(_UserChanged(user)),
         );
+
+    on<FakedUser>(_onFakedUser);
   }
 
   final AuthRepo _autRepo;
@@ -32,6 +34,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) {
     unawaited(_autRepo.logOut());
+  }
+
+  void _onFakedUser(FakedUser event, Emitter<AuthState> emit) {
+    final user = User(
+      id: 'fakedId',
+      email: Email.parse('email@gmail.com'),
+    );
+    emit(AuthState.authenticated(user));
   }
 
   @override
@@ -53,6 +63,10 @@ final class _UserChanged extends AuthEvent {
   const _UserChanged(this.user);
 
   final User user;
+}
+
+final class FakedUser extends AuthEvent {
+  const FakedUser();
 }
 
 enum AppStatus {

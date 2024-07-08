@@ -13,7 +13,13 @@ class FirebaseAuthAdapter with AuthRepo {
     GoogleSignIn? googleSignIn,
   })  : _cache = cache ?? CacheClient(),
         _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
+        _googleSignIn = googleSignIn ??
+            GoogleSignIn(
+              scopes: [
+                'email',
+                'https://www.googleapis.com/auth/contacts.readonly',
+              ],
+            ),
         isWeb = web;
 
   final CacheClient _cache;

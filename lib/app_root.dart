@@ -9,18 +9,18 @@ typedef RepoCreate<T> = T Function();
 class AppRoot extends StatelessWidget {
   const AppRoot({
     super.key,
-    required this.createAuthRepo,
+    required this.authRepo,
     required this.createBooksRepo,
   });
 
-  final RepoCreate<AuthRepo> createAuthRepo;
+  final AuthRepo authRepo;
   final RepoCreate<BooksOnlineRepo> createBooksRepo;
 
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
-        authRepoProvider.overrideWith((_) => createAuthRepo()),
+        authRepoProvider.overrideWith((_) => authRepo),
         booksRepoProvider.overrideWith((_) => createBooksRepo()),
       ],
       child: MaterialApp(
