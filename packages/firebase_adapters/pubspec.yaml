@@ -1,0 +1,19 @@
+name: firebase_adapters
+description: A Very Good Project created by Very Good CLI.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.4.0
+
+dependencies:
+  domain:
+    path: ../domain
+  firebase_auth: ^5.1.1
+  google_sign_in: ^6.2.1
+  meta: any
+
+dev_dependencies:
+  mocktail: ^1.0.3
+  test: ^1.25.2
+  very_good_analysis: ^5.1.0

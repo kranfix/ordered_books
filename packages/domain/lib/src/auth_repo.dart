@@ -33,7 +33,7 @@ enum LogInWithGoogleFailure implements Exception {
   invalidVerificationId,
 
   /// An unknown exception occurred
-  unkown,
+  unknown,
 }
 
 /// Thrown during the logout process if a failure occurs.

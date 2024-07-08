@@ -9,9 +9,11 @@ typedef RepoCreate<T> = T Function();
 class AppRoot extends StatelessWidget {
   const AppRoot({
     super.key,
+    required this.createAuthRepo,
     required this.createBooksRepo,
   });
 
+  final RepoCreate<AuthRepo> createAuthRepo;
   final RepoCreate<BooksOnlineRepo> createBooksRepo;
 
   @override

@@ -1,4 +1,5 @@
 import 'package:books_sdk_adapters/books_sdk_apadaters.dart';
+import 'package:firebase_adapters/firebase_adapters.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -13,6 +14,7 @@ Future<void> main() async {
         : await getApplicationDocumentsDirectory(),
   );
   runApp(AppRoot(
+    createAuthRepo: () => FirebaseAuthAdapter(web: kIsWeb),
     createBooksRepo: () => BooksSdkApadater(),
   ));
 }
