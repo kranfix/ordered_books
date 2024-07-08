@@ -2,7 +2,6 @@ import 'package:domain/domain.dart';
 import 'package:firebase_adapters/src/cache.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:meta/meta.dart';
 
 /// Implementation of [AuthRepo] based on Firebase auth
 class FirebaseAuthAdapter with AuthRepo {
@@ -14,7 +13,13 @@ class FirebaseAuthAdapter with AuthRepo {
     GoogleSignIn? googleSignIn,
   })  : _cache = cache ?? CacheClient(),
         _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
+        _googleSignIn = googleSignIn ??
+            GoogleSignIn(
+              scopes: [
+                'email',
+                'https://www.googleapis.com/auth/contacts.readonly',
+              ],
+            ),
         isWeb = web;
 
   final CacheClient _cache;
@@ -90,7 +95,12 @@ class FirebaseAuthAdapter with AuthRepo {
 extension on firebase_auth.User {
   /// Maps a [firebase_auth.User] into a [User].
   User toUser() {
-    return User(id: uid, email: email, name: displayName, photo: photoURL);
+    return User(
+      id: uid,
+      email: email == null ? null : Email.maybeFrom(email!),
+      name: displayName,
+      photo: photoURL,
+    );
   }
 }
 

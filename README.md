@@ -1,12 +1,33 @@
 # ordered_books
 
-A new Flutter project.
+An app that shows books and let the user order them.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+Create the platform projects:
 
-A few resources to get you started if this is your first Flutter project:
+```
+flutter create .
+```
+
+Run the command:
+
+```
+flutterfire configure
+```
+
+User `com.example.ordered_books` as organization
+
+It must create the files:
+
+- firebase_options.dart
+- firebase.json
+
+Then run:
+
+```
+flutter run
+```
 
 - [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)

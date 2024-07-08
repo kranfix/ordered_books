@@ -80,7 +80,7 @@ class User extends Equatable {
   });
 
   /// The current user's email address.
-  final String? email;
+  final Email? email;
 
   /// The current user's id.
   final String id;
