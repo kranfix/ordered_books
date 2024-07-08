@@ -20,28 +20,15 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
   ]) : read = reader {
     hydrate();
 
-    on<LoadedMoreBooks>((ev, emit) async {
-      if (state.isLoading) return;
-
-      final booksRepo = read(booksRepoProvider);
-
-      switch (state) {
-        case UnloadedBooks():
-          emit(const UnloadedBooks(true));
-          switch (await booksRepo.fetchBooksPerUser(email)) {
-            case Ok(value: final list):
-              emit(BooksLoaded.filterReapeted(false, list));
-            case Err(:final err):
-              emit(BooksLoaded(false, [], BooksLoadedFetchError(err)));
-          }
-        case BooksLoaded(isLoading: _, :final books):
-          emit(BooksLoaded(true, books));
-          switch (await booksRepo.fetchBooksPerUser(email)) {
-            case Ok(value: final incommingBooks):
-              emit(BooksLoaded(false, books.mergeWith(incommingBooks)));
-            case Err(:final err):
-              emit(BooksLoaded(false, books, BooksLoadedFetchError(err)));
-          }
+    on<LoadedMoreBooks>((ev, emit) {
+      if (!state.isLoading) {
+        switch (state) {
+          case UnloadedBooks():
+            emit(const UnloadedBooks(true));
+          case BooksLoaded(isLoading: _, :final books):
+            emit(BooksLoaded(true, books));
+        }
+        return _onLoadMore(ev, emit);
       }
     });
 
@@ -108,6 +95,30 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
           'books': BookItemListSerde.instance.serialize(books)
         },
     };
+  }
+
+  Future<void> _onLoadMore(
+    LoadedMoreBooks event,
+    Emitter<BooksState> emit,
+  ) async {
+    final booksRepo = read(booksRepoProvider);
+
+    switch (state) {
+      case UnloadedBooks():
+        switch (await booksRepo.fetchBooksPerUser(email)) {
+          case Ok(value: final list):
+            emit(BooksLoaded.filterReapeted(false, list));
+          case Err(:final err):
+            emit(BooksLoaded(false, [], BooksLoadedFetchError(err)));
+        }
+      case BooksLoaded(isLoading: _, :final books):
+        switch (await booksRepo.fetchBooksPerUser(email)) {
+          case Ok(value: final incommingBooks):
+            emit(BooksLoaded(false, books.mergeWith(incommingBooks)));
+          case Err(:final err):
+            emit(BooksLoaded(false, books, BooksLoadedFetchError(err)));
+        }
+    }
   }
 }
 
