@@ -51,22 +51,19 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
       final list = loadedState.books;
 
       final N = list.length;
-      if (ev.oldIndex >= N || ev.newIndex >= N) return;
-      if (ev.oldIndex == ev.newIndex) return;
+      final o = ev.oldIndex;
+      final n = ev.newIndex;
+      if (o >= N || n > N) return;
+      if (o == n) return;
 
       final newList = <BookItem>[];
 
-      final o = ev.oldIndex;
-      final n = ev.newIndex;
       if (o < n) {
         newList.addAll(list.sublist(0, o));
         newList.addAll(list.sublist(o + 1, n));
         newList.add(list[o]);
         newList.addAll(list.sublist(n));
       } else {
-        //     o=N-2
-        //       n=N-1
-        // [ A | |  ]
         newList.addAll(list.sublist(0, n));
         newList.add(list[o]);
         newList.addAll(list.sublist(n, o));
