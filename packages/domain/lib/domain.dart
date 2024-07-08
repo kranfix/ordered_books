@@ -3,4 +3,5 @@ library;
 
 export 'package:commons/commons.dart';
 
-export 'src/repository.dart';
+export 'src/auth_repo.dart';
+export 'src/books_repo.dart';
