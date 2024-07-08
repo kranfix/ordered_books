@@ -13,7 +13,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               : const AuthState.unauthenticated(),
         ) {
     on<_UserChanged>(_onUserChanged);
-    on<LogoutRequested>(_onLogoutRequested);
+    on<SignOutRequested>(_onLogoutRequested);
     _userSubscription = _autRepo.user().listen(
           (user) => add(_UserChanged(user)),
         );
@@ -32,8 +32,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  void _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) {
-    unawaited(_autRepo.logOut());
+  void _onLogoutRequested(SignOutRequested event, Emitter<AuthState> emit) {
+    final email = state.user.email;
+    if (email == null) return;
+    if (email == 'email@gmail.com') {
+      emit(const AuthState.unauthenticated());
+    } else {
+      unawaited(_autRepo.logOut());
+    }
   }
 
   void _onFakedUser(FakedUser event, Emitter<AuthState> emit) {
@@ -55,8 +61,8 @@ sealed class AuthEvent {
   const AuthEvent();
 }
 
-final class LogoutRequested extends AuthEvent {
-  const LogoutRequested();
+final class SignOutRequested extends AuthEvent {
+  const SignOutRequested();
 }
 
 final class _UserChanged extends AuthEvent {

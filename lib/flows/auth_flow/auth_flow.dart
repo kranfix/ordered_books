@@ -15,34 +15,31 @@ final authBlocProvider = BlocProvider<AuthBloc, AuthState>(
   (ref) => AuthBloc(authRepo: ref.read(authRepoProvider)),
 );
 
-typedef OnAuthenticated = void Function(BuildContext, AuthenticatedUser);
+typedef OnAuthenticated = Page Function(BuildContext, AuthenticatedUser);
 
 class AuthFlow extends ConsumerWidget {
   const AuthFlow({
     super.key,
-    required this.onAuthenticated,
+    required this.onAuthenticatedBuilder,
   });
 
-  final OnAuthenticated onAuthenticated;
+  final OnAuthenticated onAuthenticatedBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(authBlocProvider, (prev, state) {
-      final authenticatedUser = state.authenticatedUSer;
-
-      if (authenticatedUser != null) {
-        onAuthenticated(context, authenticatedUser);
-      }
-    });
+    final authenticatedUser = ref.watch(authBlocProvider).authenticatedUSer;
     return Navigator(
       onPopPage: (_, __) {
         return false;
       },
-      pages: const [
-        MaterialPage(
-          name: 'signIn',
-          child: SignInScreen(),
-        ),
+      pages: [
+        if (authenticatedUser == null)
+          const MaterialPage(
+            name: 'signIn',
+            child: SignInScreen(),
+          )
+        else
+          onAuthenticatedBuilder(context, authenticatedUser),
       ],
     );
   }
