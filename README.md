@@ -2,6 +2,8 @@
 
 An app that shows books and let the user order them.
 
+![App screend](/screenshots.png)
+
 ## Getting Started
 
 Create the platform projects:
