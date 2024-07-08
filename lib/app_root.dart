@@ -30,8 +30,8 @@ class AppRoot extends StatelessWidget {
           useMaterial3: true,
         ),
         home: AuthFlow(
-          onAuthenticated: (context, authenticaded) {
-            BooksFlow.navigate(
+          onAuthenticatedBuilder: (context, authenticaded) {
+            return BooksFlow.cratePage(
               context,
               email: authenticaded.email,
             );

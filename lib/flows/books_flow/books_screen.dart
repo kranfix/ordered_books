@@ -1,7 +1,9 @@
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ordered_books/flows/auth_flow/auth_bloc.dart';
 import 'package:ordered_books/flows/books_flow/books_bloc.dart';
+import 'package:ordered_books/flows/flows.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class BooksScreen extends ConsumerStatefulWidget {
@@ -56,6 +58,17 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Books'),
+        bottom: PreferredSize(
+          preferredSize: const Size(double.infinity, 20),
+          child: Text('User: ${widget.email}'),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () =>
+                ref.read(authBlocProvider.bloc).add(const SignOutRequested()),
+          ),
+        ],
       ),
       body: SmartRefresher(
         enablePullDown: false,
