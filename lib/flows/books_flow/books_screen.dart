@@ -114,9 +114,8 @@ class BookItemScrollabeView extends StatelessWidget {
       );
     }
     return ReorderableListView.builder(
-      shrinkWrap: true,
       itemCount: list.length,
-      onReorder: (oldIndex, newIndex) {},
+      onReorder: onReorder,
       itemBuilder: (context, index) => BookItemCard(
         key: Key(list[index].$id),
         book: list[index],

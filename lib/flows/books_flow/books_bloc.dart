@@ -30,7 +30,7 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
           emit(const UnloadedBooks(true));
           switch (await booksRepo.fetchBooksPerUser(email)) {
             case Ok(value: final list):
-              emit(BooksLoaded(false, list));
+              emit(BooksLoaded.filterReapeted(false, list));
             case Err(:final err):
               emit(BooksLoaded(false, [], BooksLoadedFetchError(err)));
           }
@@ -55,18 +55,17 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
       if (ev.oldIndex == ev.newIndex) return;
 
       final newList = <BookItem>[];
-      final el = list[ev.oldIndex];
 
       final o = ev.oldIndex;
       final n = ev.newIndex;
       if (o < n) {
         newList.addAll(list.sublist(0, o));
         newList.addAll(list.sublist(o + 1, n));
-        newList.add(el);
+        newList.add(list[o]);
         newList.addAll(list.sublist(n));
       } else {
         newList.addAll(list.sublist(0, n));
-        newList.add(el);
+        newList.add(list[o]);
         newList.addAll(list.sublist(n, o));
         newList.addAll(list.sublist(o + 1));
       }
@@ -143,6 +142,18 @@ class UnloadedBooks extends BooksState {
 
 class BooksLoaded extends BooksState {
   const BooksLoaded(super.loading, this.books, [this.error]) : super._();
+
+  factory BooksLoaded.filterReapeted(bool loading, List<BookItem> books) {
+    final list = <BookItem>[];
+    final set = <String>{};
+    for (final b in books) {
+      if (!set.contains(b.$id)) {
+        list.add(b);
+        set.add(b.$id);
+      }
+    }
+    return BooksLoaded(loading, books);
+  }
 
   final List<BookItem> books;
   final BooksLoadedError? error;
