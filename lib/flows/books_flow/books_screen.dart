@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordered_books/flows/auth_flow/auth_bloc.dart';
 import 'package:ordered_books/flows/books_flow/books_bloc.dart';
 import 'package:ordered_books/flows/flows.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class BooksScreen extends ConsumerStatefulWidget {
   const BooksScreen({super.key, required this.email});
@@ -18,42 +17,41 @@ class BooksScreen extends ConsumerStatefulWidget {
 class _BooksScreenState extends ConsumerState<BooksScreen> {
   late final blocProv = BooksBloc.provider(widget.email);
 
-  final refresehController = RefreshController(initialRefresh: true);
+  final _scrollController = ScrollController();
+  double lastOffset = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMoreBooks();
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    refresehController.dispose();
+    _scrollController.addListener(_onScroll);
   }
 
   void _loadMoreBooks() {
     ref.read(blocProv.bloc).add(LoadedMoreBooks());
   }
 
+  void _onScroll() {
+    //if (lastOffset != _scrollController.position.pixels) {
+    //  print(lastOffset < _scrollController.position.pixels ? "down" : "up");
+    //}
+
+    final isScrollinUp = lastOffset < _scrollController.position.pixels;
+    lastOffset = _scrollController.position.pixels;
+    if (lastOffset >= _scrollController.position.maxScrollExtent - 1e-5 &&
+        isScrollinUp) {
+      _loadMoreBooks();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final booksState = ref.watch(blocProv);
-    ref.listen<BooksState>(blocProv, (prev, curr) {
-      if (!curr.isLoading) {
-        //if (prev != null && prev.isLoading) {
-        refresehController.loadComplete();
-        //}
-      } else {
-        final state = curr.maybeCastedAs<BooksLoaded>();
-        final err = state?.error;
-        if (err != null) {
-          refresehController.loadFailed();
-        }
-      }
-    });
+    final loadedState = booksState.maybeCastedAs<BooksLoaded>();
+    final err = loadedState?.error;
 
     return Scaffold(
       appBar: AppBar(
@@ -70,48 +68,45 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
           ),
         ],
       ),
-      body: SmartRefresher(
-        enablePullDown: false,
-        enablePullUp: true,
-        controller: refresehController,
-        onLoading: _loadMoreBooks,
-        footer: CustomFooter(
-          builder: (context, LoadStatus? status) {
-            switch (status) {
-              case null:
-                return const Offstage();
-              case LoadStatus.idle:
-                return const Offstage();
-              case LoadStatus.canLoading:
-                return const Offstage();
-              case LoadStatus.loading:
-                return const LoadingFooter();
-              case LoadStatus.noMore:
-                return const Offstage();
-              case LoadStatus.failed:
-                return const ErrorFooter();
-            }
-          },
-        ),
-        child: BookItemScrollabeView(
-          onReorder: (oldIndex, newIndex) {
-            final event = ReorderdPosition(oldIndex, newIndex);
-            ref.read(blocProv.bloc).add(event);
-          },
-          books: booksState.maybeCastedAs<BooksLoaded>()?.books,
-        ),
+      body: Column(
+        children: [
+          Expanded(
+            child: BookItemScrollabeView(
+              scrollController: _scrollController,
+              onReorder: (oldIndex, newIndex) {
+                final event = ReorderdPosition(oldIndex, newIndex);
+                ref.read(blocProv.bloc).add(event);
+              },
+              books: loadedState?.books,
+            ),
+          ),
+          if (booksState.isLoading)
+            const LoadingFooter()
+          else if (err != null)
+            const ErrorFooter(),
+        ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
   }
 }
 
 class BookItemScrollabeView extends StatelessWidget {
   const BookItemScrollabeView({
     super.key,
+    required this.scrollController,
     required this.books,
     required this.onReorder,
   });
 
+  final ScrollController scrollController;
   final List<BookItem>? books;
   final ReorderCallback onReorder;
 
@@ -129,6 +124,8 @@ class BookItemScrollabeView extends StatelessWidget {
     return ReorderableListView.builder(
       itemCount: list.length,
       onReorder: onReorder,
+      physics: const AlwaysScrollableScrollPhysics(),
+      scrollController: scrollController,
       itemBuilder: (context, index) => BookItemCard(
         key: Key(list[index].$id),
         book: list[index],
@@ -184,6 +181,15 @@ class BookItemCard extends StatelessWidget {
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
+                  ),
+                ),
+                Text(
+                  book.$id,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
               ],

@@ -20,28 +20,15 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
   ]) : read = reader {
     hydrate();
 
-    on<LoadedMoreBooks>((ev, emit) async {
-      if (state.isLoading) return;
-
-      final booksRepo = read(booksRepoProvider);
-
-      switch (state) {
-        case UnloadedBooks():
-          emit(const UnloadedBooks(true));
-          switch (await booksRepo.fetchBooksPerUser(email)) {
-            case Ok(value: final list):
-              emit(BooksLoaded.filterReapeted(false, list));
-            case Err(:final err):
-              emit(BooksLoaded(false, [], BooksLoadedFetchError(err)));
-          }
-        case BooksLoaded(isLoading: _, :final books):
-          emit(BooksLoaded(true, books));
-          switch (await booksRepo.fetchBooksPerUser(email)) {
-            case Ok(value: final incommingBooks):
-              emit(BooksLoaded(false, books.mergeWith(incommingBooks)));
-            case Err(:final err):
-              emit(BooksLoaded(false, books, BooksLoadedFetchError(err)));
-          }
+    on<LoadedMoreBooks>((ev, emit) {
+      if (!state.isLoading) {
+        switch (state) {
+          case UnloadedBooks():
+            emit(const UnloadedBooks(true));
+          case BooksLoaded(isLoading: _, :final books):
+            emit(BooksLoaded(true, books));
+        }
+        return _onLoadMore(ev, emit);
       }
     });
 
@@ -51,13 +38,13 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
       final list = loadedState.books;
 
       final N = list.length;
-      if (ev.oldIndex >= N || ev.newIndex >= N) return;
-      if (ev.oldIndex == ev.newIndex) return;
+      final o = ev.oldIndex;
+      final n = ev.newIndex;
+      if (o >= N || n > N) return;
+      if (o == n) return;
 
       final newList = <BookItem>[];
 
-      final o = ev.oldIndex;
-      final n = ev.newIndex;
       if (o < n) {
         newList.addAll(list.sublist(0, o));
         newList.addAll(list.sublist(o + 1, n));
@@ -95,7 +82,7 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
     }
 
     return switch (BookItemListSerde.instance.deserialize(books1)) {
-      Ok(value: final books) => BooksLoaded(false, books),
+      Ok(value: final books) => BooksLoaded.filterReapeted(false, books),
       Err(:final err) => BooksLoaded(false, [], BooksLoadedSerDeError(err)),
     };
   }
@@ -108,6 +95,30 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
           'books': BookItemListSerde.instance.serialize(books)
         },
     };
+  }
+
+  Future<void> _onLoadMore(
+    LoadedMoreBooks event,
+    Emitter<BooksState> emit,
+  ) async {
+    final booksRepo = read(booksRepoProvider);
+
+    switch (state) {
+      case UnloadedBooks():
+        switch (await booksRepo.fetchBooksPerUser(email)) {
+          case Ok(value: final list):
+            emit(BooksLoaded.filterReapeted(false, list));
+          case Err(:final err):
+            emit(BooksLoaded(false, [], BooksLoadedFetchError(err)));
+        }
+      case BooksLoaded(isLoading: _, :final books):
+        switch (await booksRepo.fetchBooksPerUser(email)) {
+          case Ok(value: final incommingBooks):
+            emit(BooksLoaded(false, books.mergeWith(incommingBooks)));
+          case Err(:final err):
+            emit(BooksLoaded(false, books, BooksLoadedFetchError(err)));
+        }
+    }
   }
 }
 
@@ -152,7 +163,7 @@ class BooksLoaded extends BooksState {
         set.add(b.$id);
       }
     }
-    return BooksLoaded(loading, books);
+    return BooksLoaded(loading, list);
   }
 
   final List<BookItem> books;
