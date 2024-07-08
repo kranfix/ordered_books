@@ -18,7 +18,7 @@ class BooksScreen extends ConsumerStatefulWidget {
 class _BooksScreenState extends ConsumerState<BooksScreen> {
   late final blocProv = BooksBloc.provider(widget.email);
 
-  final refresehController = RefreshController(initialRefresh: true);
+  final refresehController = RefreshController();
 
   @override
   void initState() {
@@ -43,9 +43,9 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
     final booksState = ref.watch(blocProv);
     ref.listen<BooksState>(blocProv, (prev, curr) {
       if (!curr.isLoading) {
-        //if (prev != null && prev.isLoading) {
-        refresehController.loadComplete();
-        //}
+        if (prev != null && prev.isLoading) {
+          refresehController.loadComplete();
+        }
       } else {
         final state = curr.maybeCastedAs<BooksLoaded>();
         final err = state?.error;
@@ -184,6 +184,15 @@ class BookItemCard extends StatelessWidget {
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
+                  ),
+                ),
+                Text(
+                  book.$id,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
               ],

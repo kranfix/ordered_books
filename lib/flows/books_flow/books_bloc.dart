@@ -64,6 +64,9 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
         newList.add(list[o]);
         newList.addAll(list.sublist(n));
       } else {
+        //     o=N-2
+        //       n=N-1
+        // [ A | |  ]
         newList.addAll(list.sublist(0, n));
         newList.add(list[o]);
         newList.addAll(list.sublist(n, o));
@@ -95,7 +98,7 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
     }
 
     return switch (BookItemListSerde.instance.deserialize(books1)) {
-      Ok(value: final books) => BooksLoaded(false, books),
+      Ok(value: final books) => BooksLoaded.filterReapeted(false, books),
       Err(:final err) => BooksLoaded(false, [], BooksLoadedSerDeError(err)),
     };
   }
@@ -152,7 +155,7 @@ class BooksLoaded extends BooksState {
         set.add(b.$id);
       }
     }
-    return BooksLoaded(loading, books);
+    return BooksLoaded(loading, list);
   }
 
   final List<BookItem> books;
