@@ -16,55 +16,78 @@ class BooksScreen extends ConsumerStatefulWidget {
 class _BooksScreenState extends ConsumerState<BooksScreen> {
   late final blocProv = BooksBloc.provider(widget.email);
 
-  final refreseherController = RefreshController();
+  final refresehController = RefreshController(initialRefresh: true);
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(blocProv.bloc).add(LoadedMoreBooks());
+      _loadMoreBooks();
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    refresehController.dispose();
+  }
+
+  void _loadMoreBooks() {
+    ref.read(blocProv.bloc).add(LoadedMoreBooks());
   }
 
   @override
   Widget build(BuildContext context) {
     final booksState = ref.watch(blocProv);
+    ref.listen<BooksState>(blocProv, (prev, curr) {
+      if (!curr.isLoading) {
+        //if (prev != null && prev.isLoading) {
+        refresehController.loadComplete();
+        //}
+      } else {
+        final state = curr.maybeCastedAs<BooksLoaded>();
+        final err = state?.error;
+        if (err != null) {
+          refresehController.loadFailed();
+        }
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Books'),
       ),
-      body: BookItemScrollabeView(
-        books: booksState.maybeCastedAs<BooksLoaded>()?.books,
-        onReorder: (oldIndex, newIndex) {
-          final event = ReorderdPosition(oldIndex, newIndex);
-          ref.read(blocProv.bloc).add(event);
-        },
+      body: SmartRefresher(
+        enablePullDown: false,
+        enablePullUp: true,
+        controller: refresehController,
+        onLoading: _loadMoreBooks,
+        footer: CustomFooter(
+          builder: (context, LoadStatus? status) {
+            switch (status) {
+              case null:
+                return const Offstage();
+              case LoadStatus.idle:
+                return const Offstage();
+              case LoadStatus.canLoading:
+                return const Offstage();
+              case LoadStatus.loading:
+                return const LoadingFooter();
+              case LoadStatus.noMore:
+                return const Offstage();
+              case LoadStatus.failed:
+                return const ErrorFooter();
+            }
+          },
+        ),
+        child: BookItemScrollabeView(
+          onReorder: (oldIndex, newIndex) {
+            final event = ReorderdPosition(oldIndex, newIndex);
+            ref.read(blocProv.bloc).add(event);
+          },
+          books: booksState.maybeCastedAs<BooksLoaded>()?.books,
+        ),
       ),
-      // body: SmartRefresher(
-      //   enablePullDown: false,
-      //   enablePullUp: true,
-      //   controller: refreseherController,
-      //   footer: Consumer(
-      //     builder: (context, ref, child) {
-      //       return Container(
-      //         margin: const EdgeInsets.all(10),
-      //         width: double.infinity,
-      //         height: 30,
-      //         child: child,
-      //       );
-      //     },
-      //     child: const Row(
-      //       children: [
-      //         Text('Loading'),
-      //         CircularProgressIndicator(),
-      //       ],
-      //     ),
-      //   ),
-      //   child: BookItemScrollabeView(
-      //     books: booksState.maybeCastedAs<BooksLoaded>()?.books,
-      //   ),
-      // ),
     );
   }
 }
@@ -153,6 +176,79 @@ class BookItemCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RefresherFooter extends StatelessWidget {
+  const RefresherFooter({
+    super.key,
+    required this.color,
+    required this.child,
+  });
+
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      width: double.infinity,
+      height: 40,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+      ),
+      child: child,
+    );
+  }
+}
+
+class LoadingFooter extends StatelessWidget {
+  const LoadingFooter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return RefresherFooter(
+      color: Colors.grey.shade300,
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Loading',
+            style: TextStyle(fontSize: 24),
+          ),
+          SizedBox(width: 20),
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ErrorFooter extends StatelessWidget {
+  const ErrorFooter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return RefresherFooter(
+      color: Colors.red.shade100,
+      child: const Center(
+        child: Text(
+          'Error at loading more books',
+          style: TextStyle(
+            color: Colors.red,
+            fontSize: 20,
           ),
         ),
       ),
