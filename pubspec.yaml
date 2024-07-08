@@ -26,6 +26,9 @@ dependencies:
     path: packages/books_sdk_adapters
   firebase_adapters:
     path: packages/firebase_adapters
+  equatable: ^2.0.5
+  formz: ^0.7.0
+  font_awesome_flutter: ^10.7.0
 
 dev_dependencies:
   flutter_test:

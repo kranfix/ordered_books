@@ -1,63 +1,92 @@
+import 'dart:async';
+
+import 'package:domain/domain.dart';
+import 'package:equatable/equatable.dart';
 import 'package:riverbloc/riverbloc.dart';
-import 'package:commons/commons.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc(super.initialState) {
-    on<SinedOut>(
-      (ev, emit) {
-        switch (state) {
-          case UnkownAuth():
-            emit(const Unauthenticaded());
-          case Authenticaded():
-            emit(const Unauthenticaded());
-          case Unauthenticaded():
-            break;
-        }
-      },
+  AuthBloc({required AuthRepo authRepo})
+      : _autRepo = authRepo,
+        super(
+          authRepo.getCurrentUser().isNotEmpty
+              ? AuthState.authenticated(authRepo.getCurrentUser())
+              : const AuthState.unauthenticated(),
+        ) {
+    on<_UserChanged>(_onUserChanged);
+    on<LogoutRequested>(_onLogoutRequested);
+    _userSubscription = _autRepo.user().listen(
+          (user) => add(_UserChanged(user)),
+        );
+  }
+
+  final AuthRepo _autRepo;
+  late final StreamSubscription<User> _userSubscription;
+
+  void _onUserChanged(_UserChanged event, Emitter<AuthState> emit) {
+    emit(
+      event.user.isNotEmpty
+          ? AuthState.authenticated(event.user)
+          : const AuthState.unauthenticated(),
     );
-    on<SignedIn>(
-      (ev, emit) {
-        switch (state) {
-          case UnkownAuth():
-            emit(Authenticaded(ev.email));
-          case Unauthenticaded():
-            emit(Authenticaded(ev.email));
-          case Authenticaded():
-            throw UnsupportedError('Can not be double authentication');
-        }
-      },
-    );
+  }
+
+  void _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) {
+    unawaited(_autRepo.logOut());
+  }
+
+  @override
+  Future<void> close() {
+    _userSubscription.cancel();
+    return super.close();
   }
 }
 
 sealed class AuthEvent {
-  const AuthEvent._();
+  const AuthEvent();
 }
 
-class SignedIn extends AuthEvent {
-  const SignedIn(this.email) : super._();
-
-  final Email email;
+final class LogoutRequested extends AuthEvent {
+  const LogoutRequested();
 }
 
-class SinedOut extends AuthEvent {
-  const SinedOut() : super._();
+final class _UserChanged extends AuthEvent {
+  const _UserChanged(this.user);
+
+  final User user;
 }
 
-sealed class AuthState with Castable<AuthState> {
-  const AuthState._();
+enum AppStatus {
+  authenticated,
+  unauthenticated,
 }
 
-class UnkownAuth extends AuthState {
-  const UnkownAuth() : super._();
+final class AuthState extends Equatable {
+  const AuthState._({
+    required this.status,
+    this.user = User.empty,
+  });
+
+  const AuthState.authenticated(User user)
+      : this._(status: AppStatus.authenticated, user: user);
+
+  const AuthState.unauthenticated() : this._(status: AppStatus.unauthenticated);
+
+  final AppStatus status;
+  final User user;
+
+  AuthenticatedUser? get authenticatedUSer {
+    return switch (status) {
+      AppStatus.authenticated => AuthenticatedUser._(user),
+      AppStatus.unauthenticated => null,
+    };
+  }
+
+  @override
+  List<Object> get props => [status, user];
 }
 
-class Authenticaded extends AuthState {
-  const Authenticaded(this.email) : super._();
-
-  final Email email;
-}
-
-class Unauthenticaded extends AuthState {
-  const Unauthenticaded() : super._();
+/// Authenticated [User]
+extension type AuthenticatedUser._(User _user) implements User {
+  @redeclare
+  Email get email => _user.email!;
 }

@@ -20,6 +20,7 @@ class AppRoot extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
+        authRepoProvider.overrideWith((_) => createAuthRepo()),
         booksRepoProvider.overrideWith((_) => createBooksRepo()),
       ],
       child: MaterialApp(
