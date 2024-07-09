@@ -102,7 +102,6 @@ class BooksBloc extends Bloc<BooksEvent, BooksState> with HydratedMixin {
     Emitter<BooksState> emit,
   ) async {
     final booksRepo = read(booksRepoProvider);
-    await Future.delayed(Duration(seconds: 5));
     switch (state) {
       case UnloadedBooks():
         switch (await booksRepo.fetchBooksPerUser(email)) {
